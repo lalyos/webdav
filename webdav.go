@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -32,6 +33,28 @@ func main() {
 	if prefix != "/" {
 		http.Handle("/", http.HandlerFunc(NotFound))
 	}
+
+	http.HandleFunc("/help", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, `
+		<body>
+		<h2>Help</h2>
+		You can open this remote folder in VSCode via WebDav protocol.
+		You need to install the Remote Workspace extension, and than download/open the workspace config file
+    <ul>
+		  <li><a href="vscode:extension/mkloubert.vscode-remote-workspace" >install VSCode remote plugin</a>
+		  <li><a download="webdav.code-workspace" href="/webdav.code-workspace" >Download VSCode workspace file</a>
+		</ul>
+		</body>
+			`)
+	})
+
+	http.HandleFunc("/webdav.code-workspace", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, `{
+			"folders": [{
+					"uri": "webdav://%s/",
+					"name": "Hotweb - webdav",
+			}`, r.Host)
+	})
 
 	http.Handle(prefix, &webdav.Handler{
 		Prefix:     prefix,
